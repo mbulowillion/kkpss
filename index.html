@@ -134,10 +134,18 @@ footer{background:#000}
 .fg label{display:grid;gap:4px;font-size:13px;color:var(--mut)}
 form[hidden]{display:none!important}
 form.nf{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+
+.banner.tick{padding:0;overflow:hidden;white-space:nowrap}
+.trk{display:inline-flex;animation:tk 32s linear infinite;padding:10px 0}
+.banner.tick:hover .trk{animation-play-state:paused}
+.trk span{padding:0 48px;position:relative}
+.trk span::after{content:"◆";position:absolute;right:-6px;opacity:.7}
+@keyframes tk{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@media (prefers-reduced-motion:reduce){.trk{animation-duration:90s}}
 </style>
 </head>
 <body>
-<div class="banner">🎓 Learning for service: our first A-level students enrol next year. Applications open.</div>
+<div class="banner tick" aria-label="School announcements"><div class="trk"><span>🎓 Learning for service: our first A-level students enrol next year. Applications are open.</span><span>📅 The school closes on 4th December, 2026.</span><span>🏫 The school opens on 12th January, 2027.</span><span>🎓 Learning for service: our first A-level students enrol next year. Applications are open.</span><span>📅 The school closes on 4th December, 2026.</span><span>🏫 The school opens on 12th January, 2027.</span></div></div>
 <header>
   <a class="bl" href="#hero"><img class="logo" data-img="logo" alt="School logo"><span class="brand">Kenneth Kaunda STEM School</span></a>
   <nav id="nav" class="mn">
