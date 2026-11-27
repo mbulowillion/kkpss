@@ -91,6 +91,8 @@ form.cf button{padding:11px;border-radius:10px;border:none;background:var(--pri)
 
 .lk{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
 .lk a{font-size:13px;padding:6px 12px;border-radius:99px;background:var(--pri);color:var(--bg);text-decoration:none;font-weight:600}
+.lk a.ai{background:#4c1d95;color:#fff}
+.lkh{font-size:12px;color:var(--mut);margin-top:10px;font-weight:600}
 .lk a.s{background:var(--soft);color:var(--pri);border:1px solid var(--line)}
 
 :root{--bg:#0a0a0d;--card:#15161b;--ink:#f5f5f7;--mut:#a3a3ad;--pri:#fbbf24;--acc:#60a5fa;--line:#2a2b33;--soft:#101116;--hbg:#000;color-scheme:dark}
@@ -247,7 +249,7 @@ details.dp .hl li{background:var(--card);border:1px solid var(--line);border-rad
   <h2>Departments &amp; subjects</h2>
   <p class="sub">Tap a department to open it and see every subject it offers. You can also filter by curriculum or search any subject. Tap a subject for details. (OBC: Grades 10–12 · CBC: Forms 1–4)</p>
   <div class="card finder" id="finder"><h3>📚 Find materials for your subject</h3>
-    <p>Choose a subject. A new tab opens with its materials on the Ministry of Education (Zambia) website.</p>
+    <p>Choose a subject to get links to ECZ, Ministry of Education modules, past papers, video lessons and AI tutors for it.</p>
     <select id="subjsel" aria-label="Select a subject"><option value="">Select a subject…</option></select><div id="subjres"></div></div>
   <input id="q" type="search" placeholder="🔍 Search subjects (e.g. physics, ICT, commerce)…">
   <div class="tabs" id="ctabs"></div>
@@ -454,9 +456,21 @@ const DEP={
 };
 
 const R={moe:["📘 Teaching modules (MoE)","https://www.edu.gov.zm/?page_id=1142"],ecz:["📝 ECZ exams & syllabi","https://www.exams-council.org.zm/"],el:["💻 E-learning portals","https://www.edu.gov.zm/?page_id=1215"],lp:["📱 Learning Passport","https://learningpassport.org/"]};
-function lk(c){const o=c=="OBC"?["ecz","moe","el","lp"]:["moe","el","ecz","lp"];return `<div class="lk">`+o.map((k,i)=>`<a class="${i?"s":""}" href="${R[k][1]}" target="_blank" rel="noopener">${R[k][0]}</a>`).join("")+`</div>`}
+function lk(c,name){
+ const t=name.replace(/[()]/g,"").replace(/\s+/g," ").trim(),e=encodeURIComponent,lvl=c=="OBC"?"Grades 10–12, OBC":c=="CBC"?"Forms 1–4, CBC":"Forms 1–4 or Grades 10–12",
+ g=q=>"https://www.google.com/search?q="+e(q),
+ P=`I am a Zambian secondary school learner (${lvl}) following the ECZ syllabus. Teach me ${t}: give a clear summary of the main topics, key definitions, worked examples, and 5 practice questions with answers.`,
+ sci=["📝 ECZ: "+t,"https://www.exams-council.org.zm/?s="+e(t)],
+ L=[["📘 MoE teaching modules",g("Zambia Ministry of Education "+t+" teaching module "+(c=="CBC"?"Form 1 2 3 4":"Grade 10 11 12")+" pdf")],
+ ["📄 Past papers & notes",g("ECZ "+t+" past papers and notes pdf Zambia")],
+ ["▶️ Video lessons","https://www.youtube.com/results?search_query="+e("Zambia "+t+" "+(c=="CBC"?"Form 1-4":"Grade 10-12")+" lesson")],
+ ["🌐 Open learning","https://www.google.com/search?q="+e(t+" secondary school lessons site:khanacademy.org OR site:oercommons.org OR site:wikieducator.org")],
+ ["📱 Learning Passport","https://learningpassport.org/"]],
+ AI=[["🤖 ChatGPT","https://chatgpt.com/?q="+e(P)],["🤖 Claude","https://claude.ai/new?q="+e(P)],["🤖 Perplexity","https://www.perplexity.ai/search?q="+e(P)],["🤖 Copilot","https://copilot.microsoft.com/?q="+e(P)]],
+ a=(x,cl)=>`<a class="${cl}" href="${x[1]}" target="_blank" rel="noopener">${x[0]}</a>`;
+ return `<div class="lk">${a(sci,"")}${L.map(x=>a(x,"s")).join("")}</div><div class="lkh">Ask an AI tutor about ${t}</div><div class="lk">${AI.map(x=>a(x,"ai")).join("")}</div>`}
 let openD=null,flt="All";
-const subCard=s=>`<details class="card"><summary>${s[0]}</summary>${s[1]?`<span class="chip">${T[s[1]]}</span>`:""}<span class="chip">${s[3]}</span><p>${s[2]}</p>${lk(s[1])}</details>`;
+const subCard=s=>`<details class="card"><summary>${s[0]}</summary>${s[1]?`<span class="chip">${T[s[1]]}</span>`:""}<span class="chip">${s[3]}</span><p>${s[2]}</p>${lk(s[1],s[0])}</details>`;
 const fl=a=>a.filter(s=>flt=="All"||s[1]==flt||s[1]=="Both"||s[1]=="");
 function renderDept(){const q=$("#q").value.trim().toLowerCase();let h="";
  Object.entries(DEP).forEach(([n,d])=>{
@@ -497,9 +511,7 @@ const sel=$("#subjsel");
 Object.entries(DEP).forEach(([n,d])=>{const g=document.createElement("optgroup");g.label=n;d.s.forEach((s,i)=>{const o=document.createElement("option");o.value=n+"|"+i;o.textContent=s[0];g.appendChild(o)});sel.appendChild(g)});
 sel.onchange=()=>{if(!sel.value){$("#subjres").innerHTML="";return}
  const [n,i]=sel.value.split("|");const s=DEP[n].s[i];const t=encodeURIComponent(s[0].replace(/\s*\(.*?\)/,""));
- const moe="https://www.edu.gov.zm/?s="+t;
- $("#subjres").innerHTML=`<div class="dh" style="margin:0"><span class="ic">${DEP[n].i}</span><div><h3>${s[0]}</h3><p>${n} Department${s[1]?" · "+T[s[1]]:""}. ${s[2]}</p></div></div><div class="lk"><a href="${moe}" target="_blank" rel="noopener">📘 Ministry of Education materials: ${s[0]}</a><a class="s" href="https://www.exams-council.org.zm/?s=${t}" target="_blank" rel="noopener">📝 ECZ: ${s[0]}</a><a class="s" href="${R.moe[1]}" target="_blank" rel="noopener">All teaching modules</a><a class="s" href="${R.lp[1]}" target="_blank" rel="noopener">Learning Passport</a></div><p class="note">If a new tab did not open, tap the first button. Results come from the Ministry’s website search.</p>`;
- window.open(moe,"_blank","noopener")};
+  $("#subjres").innerHTML=`<div class="dh" style="margin:0"><span class="ic">${DEP[n].i}</span><div><h3>${s[0]}</h3><p>${n} Department${s[1]?" · "+T[s[1]]:""}. ${s[2]}</p></div></div>`+lk(s[1],s[0])+`<p class="note">Links open in a new tab. Materials come from search results and the AI tools, so please check them against your syllabus.</p>`};
 const FT=[["Admission application","f-admission"],["Parent request","f-request"],["Feedback","f-feedback"]];
 tabs($("#ftabs2"),FT.map(x=>x[0]),n=>{FT.forEach(x=>{$("#"+x[1]).hidden=x[0]!=n})});
 document.querySelectorAll("form.nf").forEach(f=>f.onsubmit=async e=>{e.preventDefault();const r=f.querySelector(".res");r.textContent="Sending…";try{const x=await fetch("/",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:new URLSearchParams(new FormData(f)).toString()});if(!x.ok)throw 0;f.reset();r.textContent="✅ Thank you! Your form has been sent to the school office."}catch(_){r.innerHTML="⚠️ Could not send. Please email <a class='tel' href='mailto:kksecschool@gmail.com'>kksecschool@gmail.com</a> or call +260 975 579 840."}});
